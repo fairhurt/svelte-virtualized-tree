@@ -118,8 +118,10 @@
 				].level * 20}px;"
 			>
 				<button
-					class={'flex items-center gap-1 text-nowrap rounded-md p-1' +
-						(virtualizedTree.getSelectedId() === id ? ' bg-secondary' : '')}
+					style="display: flex; align-items: center; gap: 0.25rem; white-space: nowrap; border-radius: 0.375rem; padding: 0.25rem; background-color: {virtualizedTree.getSelectedId() ===
+					id
+						? 'var(--color-secondary)'
+						: 'transparent'};"
 					on:click={() => {
 						virtualizedTree.setSelectedId(id);
 						toggleNode(visibleNodes[row.index], row.index);
