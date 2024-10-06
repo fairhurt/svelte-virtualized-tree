@@ -1,6 +1,6 @@
-# create-svelte
+# Svelte Virtualized Tree
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+Simple tree structure for
 
 ## Creating a project
 

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import VirtualizedTree from '$lib/components/virtualized-tree/virtualized-tree.svelte';
-	import type { TreeItem } from '$lib/components/virtualized-tree/types';
-	import { createVirtualizedTree } from '$lib/components/virtualized-tree';
-	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { VirtualizedTree } from '$lib';
+	import type { TreeItem } from '$lib/types';
+	import { createVirtualizedTree } from '$lib';
+	import { Separator } from '$site/components/ui/separator/index.js';
 
 	type CustomTreeItem = {
 		displayName: string;

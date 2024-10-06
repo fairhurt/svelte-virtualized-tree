@@ -1,23 +1,9 @@
 <script lang="ts">
-	import CircleUser from 'lucide-svelte/icons/circle-user';
-	import ChartLine from 'lucide-svelte/icons/chart-line';
-	import Package from 'lucide-svelte/icons/package';
 	import House from 'lucide-svelte/icons/house';
-	import ShoppingCart from 'lucide-svelte/icons/shopping-cart';
-	import Bell from 'lucide-svelte/icons/bell';
 	import Menu from 'lucide-svelte/icons/menu';
-	import Package2 from 'lucide-svelte/icons/package-2';
-	import Search from 'lucide-svelte/icons/search';
-	import Users from 'lucide-svelte/icons/users';
-	import Download from 'lucide-svelte/icons/download';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import * as HoverCard from '$lib/components/ui/hover-card/index.js';
+	import { Button } from '$site/components/ui/button/index.js';
+	import * as Sheet from '$site/components/ui/sheet/index.js';
+	import { Separator } from '$site/components/ui/separator/index.js';
 	import '../app.css';
 </script>
 
@@ -35,18 +21,17 @@
 						href="/installation"
 						class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
 					>
-						<Download class="h-4 w-4" />
 						Installation
 					</a>
 
 					<a
 						href="/usage"
-						class="ml-4 flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+						class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
 					>
 						Usage
 					</a>
 					<p
-						class="transition-ally ml-4 flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground"
+						class="transition-ally flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground"
 					>
 						Examples
 					</p>
@@ -56,12 +41,6 @@
 						class="ml-6 flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
 					>
 						Basic
-					</a>
-					<a
-						href="/examples/filtering"
-						class="ml-6 flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-					>
-						Filtering
 					</a>
 				</nav>
 			</div>
