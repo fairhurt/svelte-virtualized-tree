@@ -17,7 +17,7 @@
 	</h2>
 	<div class="m-4">
 		<code class="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
-			npm i svelte-virtual-tree
+			npm i svelte-virtualized-tree
 		</code>
 	</div>
 </div>
