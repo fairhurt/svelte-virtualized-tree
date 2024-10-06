@@ -118,10 +118,10 @@
 				].level * 20}px;"
 			>
 				<button
-					style="display: flex; align-items: center; gap: 0.25rem; white-space: nowrap; border-radius: 0.375rem; padding: 0.25rem; background-color: {virtualizedTree.getSelectedId() ===
+					style="display: flex; align-items: center; gap: 0.25rem; white-space: nowrap; padding: 0.25rem; background-color: {virtualizedTree.getSelectedId() ===
 					id
-						? 'var(--color-secondary)'
-						: 'transparent'};"
+						? 'rgb(203 213 225);'
+						: ''};"
 					on:click={() => {
 						virtualizedTree.setSelectedId(id);
 						toggleNode(visibleNodes[row.index], row.index);
@@ -137,7 +137,7 @@
 					<span class="select-none">{content}</span>
 					<!-- Selected icon. -->
 					{#if virtualizedTree.getSelectedId() === id}
-						<svelte:component this={icons['check']} class="h-4 w-4 stroke-green-500" />
+						<svelte:component this={icons['check']} class="h-4 w-4 " style="stroke:#22c55e" />
 					{/if}
 				</button>
 			</div>
