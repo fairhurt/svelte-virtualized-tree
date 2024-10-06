@@ -63,4 +63,6 @@ function createVirtualizedTree<T>({ data, accessorKey, options, icons }: { data:
     return new VirtualizedTreeInstance({ data, accessorKey, icons, options });
 }
 
-export { VirtualizedTree, VirtualizedTreeInstance, createVirtualizedTree };
+export { VirtualizedTree, VirtualizedTreeInstance, createVirtualizedTree,
+type TreeItem, type VirtualizedTreeOptions, type TreeItemAccessorKey, type VirtualizedTreeIcons 
+ };
