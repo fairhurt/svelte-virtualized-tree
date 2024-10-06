@@ -101,7 +101,7 @@
 	};
 </script>
 
-<div class="list h-full overflow-auto" bind:this={virtualListEl}>
+<div style="height:100%; overflow:auto;" bind:this={virtualListEl}>
 	<div style="position: relative; height: {$virtualizer.getTotalSize()}px; width: 100%;">
 		{#each $virtualizer.getVirtualItems() as row (row.index)}
 			{@const hasChildren = !!visibleNodes[row.index].children?.length}
