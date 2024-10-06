@@ -1,6 +1,6 @@
 {
 	"name": "svelte-virtualized-tree",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"author": "Tyson Fairhurst",
 	"license": "MIT",
 	"homepage": "https://svelte-virtualized-tree.vercel.app/",
@@ -52,13 +52,10 @@
 		"tailwind-variants": "^0.2.1"
 	},
 	"type": "module",
-	"dependencies": {
-		
-	},
+	"dependencies": {},
 	"peerDependencies": {
 		"svelte": "^4.0.0",
 		"@tanstack/svelte-virtual": "^3.10.8"
-
 	},
 	"files": [
 		"dist",
