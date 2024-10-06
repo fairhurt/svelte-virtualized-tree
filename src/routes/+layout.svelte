@@ -46,19 +46,19 @@
 						Usage
 					</a>
 					<p
-						class="ml-4 flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+						class="transition-ally ml-4 flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground"
 					>
 						Examples
 					</p>
 					<Separator />
 					<a
-						href="/usage"
+						href="/examples/basic"
 						class="ml-6 flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
 					>
 						Basic
 					</a>
 					<a
-						href="/usage"
+						href="/examples/filtering"
 						class="ml-6 flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
 					>
 						Filtering
