@@ -2,19 +2,23 @@ import { derived, writable } from 'svelte/store'
 import type { Readable, Writable } from 'svelte/store'
 import VirtualizedTree from "./virtualized-tree.svelte";
 import type { TreeItem, VirtualizedTreeOptions, TreeItemAccessorKey, VirtualizedTreeIcons, PartialKeys } from "./types";
+import { type Virtualizer, type SvelteVirtualizer as SvelteVirtualizerList, createVirtualizer } from '@tanstack/svelte-virtual';
+import { memo } from './utils';
+import { dev } from '$app/environment';
 /**
  * Represents a virtualized tree structure for efficiently rendering large tree data.
  *
  * @template T - The type of the tree item.
  */
-class Virtualizer<T> {
+class TreeVirtualizer<T> {
     data: TreeItem<T>[];
     options?: VirtualizedTreeOptions<T>;
     accessorKey: TreeItemAccessorKey<T>;
     icons?: VirtualizedTreeIcons;
     selectedId?: string | number ;
-    visibleNodes: TreeItem<T>[] = [];
+    visibleNodes: TreeItem<T>[];
     expandedNodes: Set<number | string>;
+    // virtualizer: Readable<SvelteVirtualizerList<HTMLElement, HTMLDivElement>>
     constructor({ data, accessorKey, options, icons }: { data: TreeItem<T>[]; accessorKey: TreeItemAccessorKey<T>; icons?: VirtualizedTreeIcons; options?: VirtualizedTreeOptions<T> }) {
         this.data = data;
         this.options = options;
@@ -22,6 +26,13 @@ class Virtualizer<T> {
         this.icons = icons;
         this.selectedId = undefined; // Initialize selectedId to undefined
         this.expandedNodes = new Set();
+        this.visibleNodes = [];
+        // this.virtualizer = createVirtualizer({
+        //     count: 0,
+        //     getScrollElement: () => virtualListEl,
+        //     estimateSize: () => 35,
+        //     overscan: 5
+        // })
         this.updateVisibleNodes();
     }
     setOptions = (opts: VirtualizedTreeOptions<T>) => {
@@ -74,11 +85,29 @@ class Virtualizer<T> {
 			return this.expandedNodes.has(node.parentId);
 		});
 		this.visibleNodes = nodesThatShouldBeVisible;
+        // console.log(this.visibleNodes);
     }
     
-    getVisibleNodes(): TreeItem<T>[] {
-        return this.visibleNodes;
-    }
+    // getVisibleNodes(): TreeItem<T>[] {
+    //     return this.visibleNodes;
+    // }
+    getVisibleNodes = memo(
+        () => [this.visibleNodes],
+        (visibleNodes) => {
+          const virtualItems: Array<TreeItem<T>> = []
+    
+          for (let k = 0, len = visibleNodes.length; k < len; k++) {
+            const visibleNode = visibleNodes[k]!
+    
+            virtualItems.push(visibleNode)
+          }
+          console.log("virtual items: ", virtualItems);
+          return virtualItems
+        },
+        {
+          key: !dev &&  'getVisibleNodes',
+        },
+      )
 
     toggleNode(nodeId: number | string, index: number ): void {
         let node : TreeItem<T> = this.data.find((node) => node.id === nodeId) as TreeItem<T>;
@@ -108,18 +137,15 @@ class Virtualizer<T> {
 		} else {
 			this.expandedNodes.add(node.id);
 			if (node.children && node.children.length > 0) {
-                console.log("Before adding children: ", this.visibleNodes.length);
 				this.visibleNodes = [
 					...this.visibleNodes.slice(0, index + 1),
 					...node.children,
 					...this.visibleNodes.slice(index + 1)
 				];
-                console.log("After adding children: ", this.visibleNodes.length);
 			} else {
 				this.visibleNodes = [...this.visibleNodes];
 			}
 		}
-        console.log("Updated visible nodes: ", this.visibleNodes);  
         // this.updateVisibleNodes(); 
     }
 
@@ -169,7 +195,7 @@ accessorKey: TreeItemAccessorKey<T>
 
 export type SvelteVirtualizer<
     T
-  > = Omit<Virtualizer<T>, 'setOptions'> & {
+  > = Omit<TreeVirtualizer<T>, 'setOptions'> & {
     setOptions: (
       options: Partial<VirtualizerOptions<T>>,
     ) => void
@@ -180,11 +206,11 @@ export type SvelteVirtualizer<
   >(
     initialOptions: VirtualizerOptions<T>,
   ): Readable<SvelteVirtualizer<T>> {
-    const virtualizer = new Virtualizer(initialOptions)
+    const virtualizer = new TreeVirtualizer(initialOptions)
     const originalSetOptions = virtualizer.setOptions
   
     // eslint-disable-next-line prefer-const
-    let virtualizerWritable: Writable<Virtualizer<T>>
+    let virtualizerWritable: Writable<TreeVirtualizer<T>>
   
     const setOptions = (
       options: Partial<VirtualizerOptions<T>>,
@@ -196,7 +222,7 @@ export type SvelteVirtualizer<
       originalSetOptions({
         ...resolvedOptions,
         onChange: (
-          instance: Virtualizer<T>,
+          instance: TreeVirtualizer<T>,
           sync: boolean,
         ) => {
           virtualizerWritable.set(instance)
@@ -224,6 +250,6 @@ export type SvelteVirtualizer<
     })
   }
   
-  export { VirtualizedTree, Virtualizer,
+  export { VirtualizedTree, TreeVirtualizer,
     type TreeItem, type VirtualizedTreeOptions, type TreeItemAccessorKey, type VirtualizedTreeIcons 
      };

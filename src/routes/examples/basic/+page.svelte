@@ -51,17 +51,17 @@
 	});
 
 	let virtualListEl: HTMLDivElement;
-
+	$: visibleNodes = $virtualizedTree.getVisibleNodes();
+	$: console.log('visibleNodes updated', visibleNodes);
+	$: console.log('selectedid: ', $virtualizedTree.selectedId);
 	$: virtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
 		count: 0,
 		getScrollElement: () => virtualListEl,
 		estimateSize: () => 35,
 		overscan: 5
 	});
-	$: console.log('Did visible nodes update: ', $virtualizedTree.visibleNodes);
 	$: {
 		// Prevents re-creating the virtualizer if the size changes.
-		console.log('updating virtualizer');
 		$virtualizer.setOptions({
 			count: $virtualizedTree.visibleNodes.length
 		});
@@ -76,11 +76,12 @@
 	<div style="height:100%; overflow:auto;" bind:this={virtualListEl}>
 		<div style="position: relative; height: {$virtualizer.getTotalSize()}px; width: 100%;">
 			{#each $virtualizer.getVirtualItems() as row (row.index)}
-				{@const hasChildren = !!$virtualizedTree.visibleNodes[row.index].children?.length}
-				{@const id = $virtualizedTree.visibleNodes[row.index].id}
-				{@const icon = $virtualizedTree.visibleNodes[row.index].icon}
+				{@const node = visibleNodes[row.index]}
+				{@const hasChildren = !!node.children?.length}
+				{@const id = node.id}
+				{@const icon = node.icon}
 				{@const isExpanded = $virtualizedTree.expandedNodes.has(id)}
-				{@const content = $virtualizedTree.visibleNodes[row.index][$virtualizedTree.accessorKey]}
+				{@const content = node[$virtualizedTree.accessorKey]}
 				{@const selectedId = $virtualizedTree.getSelectedId()}
 
 				<div
