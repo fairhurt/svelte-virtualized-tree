@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { VirtualizedTree } from '$lib';
 	import type { TreeItem } from '$lib/types';
 	import { createVirtualizedTree } from '$lib';
 	import { Separator } from '$site/components/ui/separator/index.js';
@@ -8,6 +7,8 @@
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import Check from 'lucide-svelte/icons/check';
 	import Minus from 'lucide-svelte/icons/minus';
+	import { createVirtualizer } from '@tanstack/svelte-virtual';
+
 	const icons = {
 		plus: Plus,
 		'chevron-right': ChevronRight,
@@ -44,11 +45,10 @@
 
 	const treeData: TreeItem<CustomTreeItem>[] = generateTreeData(0, null, 3000);
 
-	let virtualizedTree = createVirtualizedTree<CustomTreeItem>({
+	$: virtualizedTree = createVirtualizedTree<CustomTreeItem>({
 		data: treeData,
 		accessorKey: 'displayName'
 	});
-	import { createVirtualizer } from '@tanstack/svelte-virtual';
 
 	let virtualListEl: HTMLDivElement;
 
@@ -58,8 +58,10 @@
 		estimateSize: () => 35,
 		overscan: 5
 	});
+	$: console.log('Did visible nodes update: ', $virtualizedTree.visibleNodes);
 	$: {
 		// Prevents re-creating the virtualizer if the size changes.
+		console.log('updating virtualizer');
 		$virtualizer.setOptions({
 			count: $virtualizedTree.visibleNodes.length
 		});

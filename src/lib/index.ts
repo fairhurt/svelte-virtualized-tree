@@ -108,11 +108,13 @@ class Virtualizer<T> {
 		} else {
 			this.expandedNodes.add(node.id);
 			if (node.children && node.children.length > 0) {
+                console.log("Before adding children: ", this.visibleNodes.length);
 				this.visibleNodes = [
 					...this.visibleNodes.slice(0, index + 1),
 					...node.children,
 					...this.visibleNodes.slice(index + 1)
 				];
+                console.log("After adding children: ", this.visibleNodes.length);
 			} else {
 				this.visibleNodes = [...this.visibleNodes];
 			}
