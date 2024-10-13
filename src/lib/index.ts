@@ -12,12 +12,15 @@ class VirtualizedTreeInstance<T> {
     icons?: VirtualizedTreeIcons;
     selectedId?: string | number ;
     visibleNodes: TreeItem<T>[] = [];
+    expandedNodes: Set<number | string>;
     constructor({ data, accessorKey, options, icons }: { data: TreeItem<T>[]; accessorKey: TreeItemAccessorKey<T>; icons?: VirtualizedTreeIcons; options?: VirtualizedTreeOptions<T> }) {
         this.data = data;
         this.options = options;
         this.accessorKey = accessorKey;
         this.icons = icons;
         this.selectedId = undefined; // Initialize selectedId to undefined
+        this.expandedNodes = new Set();
+        this.updateVisibleNodes();
     }
 
     /**
@@ -48,7 +51,79 @@ class VirtualizedTreeInstance<T> {
     setSelectedId(id: string | number): void {
         this.selectedId = id;
     }
+
+    setExpandedNodes(expandedNodes: Set<number | string>): void {   
+        this.expandedNodes = expandedNodes;
+    }
+    // Updates the visible nodes based on the expanded nodes
+    updateVisibleNodes(): void {
+        let nodesThatShouldBeVisible = this.data.filter((node: TreeItem<T>) => {
+			if (node.parentId === null) {
+				return true;
+			}
+			return this.expandedNodes.has(node.parentId);
+		});
+		this.visibleNodes = nodesThatShouldBeVisible;
+    }
     
+    getVisibleNodes(): TreeItem<T>[] {
+        return this.visibleNodes;
+    }
+
+    toggleNode(nodeId: number | string, index: number ): void {
+        let node : TreeItem<T> = this.data.find((node) => node.id === nodeId) as TreeItem<T>;
+        if(!node) {
+            return;
+        }
+        if (this.expandedNodes.has(node.id)) {
+			this.expandedNodes.delete(node.id);
+			if (node.children && node.children.length > 0) {
+				const removeChildren = (children: TreeItem<any>[]) => {
+					children.forEach((child) => {
+						const index = this.visibleNodes.findIndex((node) => node.id === child.id);
+						if (index !== -1) {
+							this.expandedNodes.delete(child.id);
+							let visibleNodesCopy = [...this.visibleNodes];
+							visibleNodesCopy.splice(index, 1);
+							this.visibleNodes = visibleNodesCopy;
+							if (child.children && child.children.length > 0) {
+								removeChildren(child.children);
+							}
+						}
+					});
+				};
+
+				removeChildren(node.children);
+			}
+		} else {
+			this.expandedNodes.add(node.id);
+			if (node.children && node.children.length > 0) {
+				this.visibleNodes = [
+					...this.visibleNodes.slice(0, index + 1),
+					...node.children,
+					...this.visibleNodes.slice(index + 1)
+				];
+			} else {
+				this.visibleNodes = [...this.visibleNodes];
+			}
+		}
+        console.log("Updated visible nodes: ", this.visibleNodes);  
+        // this.updateVisibleNodes(); 
+    }
+
+    getParentIds = (newExpanded: Set<number>, node: TreeItem<any>) => {
+		// If no nodes are selected return empty
+		if (node === undefined) return [];
+		//Only the root node is null, so just return the root nodes id
+		if (node.parent === null) return newExpanded.add(node.id);
+		//Otherwise push the current nodes id
+		newExpanded.add(node.id);
+		//Find the parent of the node
+		let parentNode = this.data.find((value) => value.id === node.parent);
+		//Add the parent node to the list of expanded nodes
+		if (parentNode !== undefined) this.getParentIds(newExpanded, parentNode);
+	};
+
 }
 
 /**
