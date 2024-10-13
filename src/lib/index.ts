@@ -1,11 +1,13 @@
+import { derived, writable } from 'svelte/store'
+import type { Readable, Writable } from 'svelte/store'
 import VirtualizedTree from "./virtualized-tree.svelte";
-import type { TreeItem, VirtualizedTreeOptions, TreeItemAccessorKey, VirtualizedTreeIcons } from "./types";
+import type { TreeItem, VirtualizedTreeOptions, TreeItemAccessorKey, VirtualizedTreeIcons, PartialKeys } from "./types";
 /**
  * Represents a virtualized tree structure for efficiently rendering large tree data.
  *
  * @template T - The type of the tree item.
  */
-class VirtualizedTreeInstance<T> {
+class Virtualizer<T> {
     data: TreeItem<T>[];
     options?: VirtualizedTreeOptions<T>;
     accessorKey: TreeItemAccessorKey<T>;
@@ -22,6 +24,14 @@ class VirtualizedTreeInstance<T> {
         this.expandedNodes = new Set();
         this.updateVisibleNodes();
     }
+    setOptions = (opts: VirtualizedTreeOptions<T>) => {
+        Object.entries(opts).forEach(([key, value]) => {
+          if (typeof value === 'undefined') delete (opts as any)[key]
+        })
+        this.options = {
+         ...opts,
+        }
+      }
 
     /**
      * Retrieves the display value of a tree item at the specified index.
@@ -134,10 +144,84 @@ class VirtualizedTreeInstance<T> {
  * @param {VirtualizedTreeOptions<T>} options - Configuration options for the virtualized tree.
  * @returns {VirtualizedTree<T>} A new instance of a virtualized tree.
  */
-function createVirtualizedTree<T>({ data, accessorKey, options, icons }: { data: TreeItem<T>[]; accessorKey: TreeItemAccessorKey<T>; icons?: VirtualizedTreeIcons; options?: VirtualizedTreeOptions<T> }): VirtualizedTreeInstance<T> {
-    return new VirtualizedTreeInstance({ data, accessorKey, icons, options });
+// function createVirtualizedTree<T>({ data, accessorKey, options, icons }: { data: TreeItem<T>[]; accessorKey: TreeItemAccessorKey<T>; icons?: VirtualizedTreeIcons; options?: VirtualizedTreeOptions<T> }): VirtualizedTreeInstance<T> {
+//     return new Virtualizer({ data, accessorKey, icons, options });
+// }
+
+
+
+ 
+ export interface VirtualizerOptions<
+T,
+> {
+ // Required from the user
+data: TreeItem<T>[]
+accessorKey: TreeItemAccessorKey<T>
+ // Optional
+ debug?: boolean
+
+
 }
 
-export { VirtualizedTree, VirtualizedTreeInstance, createVirtualizedTree,
-type TreeItem, type VirtualizedTreeOptions, type TreeItemAccessorKey, type VirtualizedTreeIcons 
- };
+
+
+export type SvelteVirtualizer<
+    T
+  > = Omit<Virtualizer<T>, 'setOptions'> & {
+    setOptions: (
+      options: Partial<VirtualizerOptions<T>>,
+    ) => void
+  }
+  
+  function createVirtualizedTreeBase<
+    T
+  >(
+    initialOptions: VirtualizerOptions<T>,
+  ): Readable<SvelteVirtualizer<T>> {
+    const virtualizer = new Virtualizer(initialOptions)
+    const originalSetOptions = virtualizer.setOptions
+  
+    // eslint-disable-next-line prefer-const
+    let virtualizerWritable: Writable<Virtualizer<T>>
+  
+    const setOptions = (
+      options: Partial<VirtualizerOptions<T>>,
+    ) => {
+      const resolvedOptions = {
+        ...virtualizer.options,
+        ...options,
+      }
+      originalSetOptions({
+        ...resolvedOptions,
+        onChange: (
+          instance: Virtualizer<T>,
+          sync: boolean,
+        ) => {
+          virtualizerWritable.set(instance)
+        },
+      })
+    }
+  
+    virtualizerWritable = writable(virtualizer, () => {
+      setOptions(initialOptions)
+    })
+  
+    return derived(virtualizerWritable, (instance) =>
+      Object.assign(instance, { setOptions }),
+    )
+  }
+  
+  export function createVirtualizedTree<
+    T
+  >(
+    options: 
+      VirtualizerOptions<T>,
+  ): Readable<SvelteVirtualizer<T>> {
+    return createVirtualizedTreeBase<T>({
+      ...options,
+    })
+  }
+  
+  export { VirtualizedTree, Virtualizer,
+    type TreeItem, type VirtualizedTreeOptions, type TreeItemAccessorKey, type VirtualizedTreeIcons 
+     };
