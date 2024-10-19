@@ -1,12 +1,6 @@
 import {
     TreeVirtualizer,
-    elementScroll,
-    observeElementOffset,
     observeElementRect,
-    observeWindowOffset,
-    observeWindowRect,
-    windowScroll,
-    type VirtualTreeItem,
     type VirtualizerOptions
   } from './core'
   import { derived, writable } from 'svelte/store'
@@ -73,15 +67,11 @@ import {
     TItemElement extends Element,
     TData,
   >(
-    options: PartialKeys<
-      VirtualizerOptions<TScrollElement, TItemElement, TData>,
-      'observeElementRect' | 'observeElementOffset' | 'scrollToFn'
-    >,
+    options: 
+      VirtualizerOptions<TScrollElement, TItemElement, TData>
+    ,
   ): Readable<SvelteTreeVirtualizer<TScrollElement, TItemElement, TData>> {
     return createTreeVirtualizerBase<TScrollElement, TItemElement, TData>({
-      observeElementRect: observeElementRect,
-      observeElementOffset: observeElementOffset,
-      scrollToFn: elementScroll,
       ...options,
     })
   }

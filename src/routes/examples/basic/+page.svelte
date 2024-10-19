@@ -43,16 +43,13 @@
 		return items;
 	}
 
-	const treeData: VirtualTreeItem<CustomTreeItem>[] = generateTreeData(0, null, 30);
+	const treeData: VirtualTreeItem<CustomTreeItem>[] = generateTreeData(0, null, 3000);
 
 	let virtualListEl: HTMLDivElement;
 	let virtualTreeEl: HTMLDivElement;
 
 	$: virtualizedTree = createTreeVirtualizer<HTMLDivElement, HTMLDivElement, CustomTreeItem>({
-		count: 0,
 		getScrollElement: () => virtualTreeEl,
-		estimateSize: () => 35,
-		overscan: 5,
 		data: treeData,
 		accessorKey: 'displayName'
 	});
@@ -69,7 +66,6 @@
 			count: $virtualizedTree.getVirtualTreeItems().length
 		});
 	}
-	$: console.log('virtualizedTree getVirtualTreeItems', $virtualizedTree.getVirtualTreeItems());
 </script>
 
 <h4 class=" scroll-m-20 text-xl font-semibold tracking-tight">
@@ -78,7 +74,7 @@
 <Separator class="mb-1" />
 <div class="h-[600px] overflow-scroll">
 	<div bind:this={virtualTreeEl}>
-		<div style="height:100%; overflow:auto;" bind:this={virtualListEl}>
+		<div style="" bind:this={virtualListEl}>
 			<div style="position: relative; height: {$virtualizer.getTotalSize()}px; width: 100%;">
 				{#each $virtualizer.getVirtualItems() as row (row.index)}
 					{@const node = $virtualizedTree.visibleItems[row.index]}
@@ -101,7 +97,7 @@
 								? 'rgb(203 213 225);'
 								: ''};"
 							on:click={() => {
-								$virtualizedTree.setSelectedId(id);
+								// $virtualizedTree.setSelectedId(id);
 								$virtualizedTree.toggleNode(id, row.index);
 							}}
 							aria-expanded={isExpanded}
