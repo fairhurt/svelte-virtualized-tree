@@ -12,38 +12,157 @@ import { dev } from '$app/environment';
  */
 class TreeVirtualizer<T> {
     data: TreeItem<T>[];
-    options?: VirtualizedTreeOptions<T>;
+    options!: Required<VirtualizerOptions<T>>;
     accessorKey: TreeItemAccessorKey<T>;
     icons?: VirtualizedTreeIcons;
     selectedId?: string | number ;
     visibleNodes: TreeItem<T>[];
     expandedNodes: Set<number | string>;
-    // virtualizer: Readable<SvelteVirtualizerList<HTMLElement, HTMLDivElement>>
-    constructor({ data, accessorKey, options, icons }: { data: TreeItem<T>[]; accessorKey: TreeItemAccessorKey<T>; icons?: VirtualizedTreeIcons; options?: VirtualizedTreeOptions<T> }) {
-        this.data = data;
-        this.options = options;
-        this.accessorKey = accessorKey;
-        this.icons = icons;
-        this.selectedId = undefined; // Initialize selectedId to undefined
-        this.expandedNodes = new Set();
+    constructor(options: VirtualizerOptions<T>){
+        this.data = options.data;
+        this.accessorKey = options.accessorKey;
         this.visibleNodes = [];
-        // this.virtualizer = createVirtualizer({
-        //     count: 0,
-        //     getScrollElement: () => virtualListEl,
-        //     estimateSize: () => 35,
-        //     overscan: 5
-        // })
+        this.expandedNodes = new Set();
+        this.setOptions(options);
         this.updateVisibleNodes();
+        
     }
-    setOptions = (opts: VirtualizedTreeOptions<T>) => {
+    setOptions = (opts: VirtualizerOptions<T>) => {
         Object.entries(opts).forEach(([key, value]) => {
           if (typeof value === 'undefined') delete (opts as any)[key]
         })
         this.options = {
          ...opts,
+         debug: false,
+         onChange: () => {},
         }
       }
+    //   private observer = (() => {
+    //     let _ro: ResizeObserver | null = null
+    
+    //     const get = () => {
+    //       if (_ro) {
+    //         return _ro
+    //       }
+    
+    //       if (!this.targetWindow || !this.targetWindow.ResizeObserver) {
+    //         return null
+    //       }
+    
+    //       return (_ro = new this.targetWindow.ResizeObserver((entries) => {
+    //         entries.forEach((entry) => {
+    //           this._measureElement(entry.target as TItemElement, entry)
+    //         })
+    //       }))
+    //     }
+    
+    //     return {
+    //       disconnect: () => {
+    //         get()?.disconnect()
+    //         _ro = null
+    //       },
+    //       observe: (target: Element) =>
+    //         get()?.observe(target, { box: 'border-box' }),
+    //       unobserve: (target: Element) => get()?.unobserve(target),
+    //     }
+    //   })()
 
+      private notify = (sync: boolean) => {
+        console.log("notifying sync: ", sync);
+        this.options.onChange?.(this, sync)
+      }
+    
+    //   private maybeNotify = memo(
+    //     () => {
+    //       this.calculateRange()
+    
+    //       return [
+    //         this.isScrolling,
+    //         this.range ? this.range.startIndex : null,
+    //         this.range ? this.range.endIndex : null,
+    //       ]
+    //     },
+    //     (isScrolling) => {
+    //       this.notify(isScrolling)
+    //     },
+    //     {
+    //       key: process.env.NODE_ENV !== 'production' && 'maybeNotify',
+    //       debug: () => this.options.debug,
+    //       initialDeps: [
+    //         this.isScrolling,
+    //         this.range ? this.range.startIndex : null,
+    //         this.range ? this.range.endIndex : null,
+    //       ] as [boolean, number | null, number | null],
+    //     },
+    //   )
+    
+      private cleanup = () => {
+        // this.unsubs.filter(Boolean).forEach((d) => d!())
+        // this.unsubs = []
+        // this.observer.disconnect()
+        // this.scrollElement = null
+        // this.targetWindow = null
+      }
+    
+    //   _didMount = () => {
+    //     return () => {
+    //       this.cleanup()
+    //     }
+    //   }
+    
+    //   _willUpdate = () => {
+    //     const scrollElement = this.options.enabled
+    //       ? this.options.getScrollElement()
+    //       : null
+    
+    //     if (this.scrollElement !== scrollElement) {
+    //       this.cleanup()
+    
+    //       if (!scrollElement) {
+    //         this.maybeNotify()
+    //         return
+    //       }
+    
+    //       this.scrollElement = scrollElement
+    
+    //       if (this.scrollElement && 'ownerDocument' in this.scrollElement) {
+    //         this.targetWindow = this.scrollElement.ownerDocument.defaultView
+    //       } else {
+    //         this.targetWindow = this.scrollElement?.window ?? null
+    //       }
+    
+    //       this.elementsCache.forEach((cached) => {
+    //         this.observer.observe(cached)
+    //       })
+    
+    //       this._scrollToOffset(this.getScrollOffset(), {
+    //         adjustments: undefined,
+    //         behavior: undefined,
+    //       })
+    
+    //       this.unsubs.push(
+    //         this.options.observeElementRect(this, (rect) => {
+    //           this.scrollRect = rect
+    //           this.maybeNotify()
+    //         }),
+    //       )
+    
+    //       this.unsubs.push(
+    //         this.options.observeElementOffset(this, (offset, isScrolling) => {
+    //           this.scrollAdjustments = 0
+    //           this.scrollDirection = isScrolling
+    //             ? this.getScrollOffset() < offset
+    //               ? 'forward'
+    //               : 'backward'
+    //             : null
+    //           this.scrollOffset = offset
+    //           this.isScrolling = isScrolling
+    
+    //           this.maybeNotify()
+    //         }),
+    //       )
+    //     }
+    //   }
     /**
      * Retrieves the display value of a tree item at the specified index.
      *
@@ -71,10 +190,12 @@ class TreeVirtualizer<T> {
      */
     setSelectedId(id: string | number): void {
         this.selectedId = id;
+        this.notify(true);
     }
 
     setExpandedNodes(expandedNodes: Set<number | string>): void {   
         this.expandedNodes = expandedNodes;
+        this.notify(true);
     }
     // Updates the visible nodes based on the expanded nodes
     updateVisibleNodes(): void {
@@ -147,6 +268,7 @@ class TreeVirtualizer<T> {
 			}
 		}
         // this.updateVisibleNodes(); 
+        
     }
 
     getParentIds = (newExpanded: Set<number>, node: TreeItem<any>) => {
@@ -187,6 +309,10 @@ data: TreeItem<T>[]
 accessorKey: TreeItemAccessorKey<T>
  // Optional
  debug?: boolean
+ onChange?: (
+    instance: TreeVirtualizer<T>,
+    sync: boolean,
+  ) => void
 
 
 }
@@ -218,6 +344,7 @@ export type SvelteVirtualizer<
       const resolvedOptions = {
         ...virtualizer.options,
         ...options,
+        onChange: options.onChange,
       }
       originalSetOptions({
         ...resolvedOptions,
@@ -225,7 +352,9 @@ export type SvelteVirtualizer<
           instance: TreeVirtualizer<T>,
           sync: boolean,
         ) => {
+          console.log("instance: ", instance);
           virtualizerWritable.set(instance)
+          resolvedOptions.onChange?.(instance, sync)
         },
       })
     }

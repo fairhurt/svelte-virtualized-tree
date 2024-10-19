@@ -98,6 +98,7 @@
 						on:click={() => {
 							$virtualizedTree.setSelectedId(id);
 							$virtualizedTree.toggleNode(id, row.index);
+							$virtualizedTree.updateVisibleNodes();
 						}}
 						aria-expanded={isExpanded}
 					>
