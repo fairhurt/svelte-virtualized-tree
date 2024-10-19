@@ -532,18 +532,10 @@ export class TreeVirtualizer<
 
 	private getIndexes = memo(
 		() => [
-			this.options.rangeExtractor,
-			this.options.overscan
-			//   this.options.count,
+			this.visibleItems,
 		],
-		(rangeExtractor, range, overscan) => {
-			return range === null
-				? []
-				: rangeExtractor({
-						startIndex: range.startIndex,
-						endIndex: range.endIndex,
-						overscan
-					});
+		(visibleItems : {visibleItems : VirtualTreeItem<TData>[]}) => {
+            return visibleItems
 		},
 		{
 			key: process.env.NODE_ENV !== 'production' && 'getIndexes',
@@ -565,15 +557,22 @@ export class TreeVirtualizer<
 
 	getVirtualTreeItems = memo(
 		() => [this.getIndexes()],
-		(indexes: any) => {
-			const VirtualTreeItems: Array<VirtualTreeItem<TData>> = [];
+		(indexes: VirtualTreeItem<TData>[]) => {
+            console.log("Expanded", this.expandedNodes)
+			const VirtualTreeItems: Array<VirtualTreeItem<TData>> = this.options.data.filter((node: VirtualTreeItem<TData>) => {
+                console.log("Node: ", node);
+                if (node.parentId === null) {
+                    return true;
+                }
+                return this.expandedNodes.has(node.parentId);
+            });
+            console.log("Virtual tree items:", VirtualTreeItems)
+			// for (let k = 0, len = indexes.length; k < len; k++) {
+			// 	const i = indexes[k]!;
+			// 	// const measurement = measurements[i]!
 
-			for (let k = 0, len = indexes.length; k < len; k++) {
-				const i = indexes[k]!;
-				// const measurement = measurements[i]!
-
-				VirtualTreeItems.push(i);
-			}
+			// 	VirtualTreeItems.push(i);
+			// }
 
 			return VirtualTreeItems;
 		},
@@ -609,36 +608,14 @@ export class TreeVirtualizer<
 			return this.expandedNodes.has(node.parentId);
 		});
 		this.visibleItems = nodesThatShouldBeVisible;
-		// console.log(this.visibleNodes);
 	}
-
-	// getVisibleNodes(): TreeItem<T>[] {
-	//     return this.visibleNodes;
-	// }
-	getVisibleNodes = memo(
-		() => [this.visibleItems],
-		(indexes: any) => {
-			const VirtualTreeItems: Array<VirtualTreeItem<TData>> = [];
-
-			for (let k = 0, len = indexes.length; k < len; k++) {
-				const i = indexes[k]!;
-				VirtualTreeItems.push(i);
-			}
-
-			return VirtualTreeItems;
-		},
-		{
-			key: process.env.NODE_ENV !== 'production' && 'getVirtualTreeItems',
-			debug: () => this.options.debug
-		}
-	);
-
 	toggleNode(nodeId: number | string, index: number): void {
 		let node: VirtualTreeItem<TData> = this.options.data.find((node) => node.id === nodeId) as VirtualTreeItem<TData>;
 		if (!node) {
 			return;
 		}
 		if (this.expandedNodes.has(node.id)) {
+            console.log("Deleting node: ", node.id);   
 			this.expandedNodes.delete(node.id);
 			if (node.children && node.children.length > 0) {
 				const removeChildren = (children: VirtualTreeItem<TData>[]) => {
@@ -660,18 +637,31 @@ export class TreeVirtualizer<
 			}
 		} else {
 			this.expandedNodes.add(node.id);
+            console.log("Adding node: ", node.id);
 			if (node.children && node.children.length > 0) {
-				this.visibleItems = [
+                console.log("Node has children: ", node.children.length);
+                let newVisibleItems = [...this.visibleItems];
+				newVisibleItems = [
 					...this.visibleItems.slice(0, index + 1),
 					...node.children,
 					...this.visibleItems.slice(index + 1)
 				];
+                this.setVisibleNodes(newVisibleItems);
+                // this.visibleItems = newVisibleItems;
+                console.log("New visible items: ", this.visibleItems);
 			} else {
-				this.visibleItems = [...this.visibleItems];
+				this.setVisibleNodes([...this.visibleItems]);
+                // this.options.count = this.visibleItems.length;
 			}
 		}
+        
 		// this.updateVisibleNodes();
 	}
+
+    setVisibleNodes(visibleNodes: VirtualTreeItem<TData>[]): void {
+        this.visibleItems = visibleNodes;
+        this.notify(true);
+    }
 
 	private getParentIds = (newExpanded: Set<number| string>, node: VirtualTreeItem<TData>) => {
 		// If no nodes are selected return empty
