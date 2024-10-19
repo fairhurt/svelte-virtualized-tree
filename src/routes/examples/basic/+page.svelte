@@ -35,7 +35,7 @@
 				icon: 'plus',
 				level,
 				parentId,
-				children: level < 4 ? generateTreeData(level + 1, id, Math.floor(Math.random() * 3)) : []
+				children: level < 4 ? generateTreeData(level + 1, id, Math.floor(Math.random() * 4)) : []
 			};
 			totalNodes++;
 			items.push(item);
@@ -43,7 +43,7 @@
 		return items;
 	}
 
-	const treeData: VirtualTreeItem<CustomTreeItem>[] = generateTreeData(0, null, 3000);
+	const treeData: VirtualTreeItem<CustomTreeItem>[] = generateTreeData(0, null, 2000);
 
 	let virtualListEl: HTMLDivElement;
 	let virtualTreeEl: HTMLDivElement;
@@ -97,7 +97,6 @@
 								? 'rgb(203 213 225);'
 								: ''};"
 							on:click={() => {
-								// $virtualizedTree.setSelectedId(id);
 								$virtualizedTree.toggleNode(id, row.index);
 							}}
 							aria-expanded={isExpanded}

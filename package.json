@@ -53,11 +53,6 @@
 		"vitest": "^2.0.0"
 	},
 	"type": "module",
-	"peerDependencies": {
-		"@tanstack/svelte-virtual": "^3.10.8",
-		"lucide-svelte": "^0.447.0",
-		"svelte": "^4.0.0"
-	},
 	"files": [
 		"dist",
 		"!dist/**/*.test.*",

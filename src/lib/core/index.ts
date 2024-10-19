@@ -79,14 +79,10 @@ export interface VirtualizerOptions<
 
 	// Optional
 	debug?: boolean;
-	initialRect?: Rect;
 	onChange?: (
 		instance: TreeVirtualizer<TScrollElement, TItemElement, TData>,
 		sync: boolean
 	) => void;
-	overscan?: number;
-	horizontal?: boolean;
-	scrollPaddingStart?: number;
 	indexAttribute?: string;
 	enabled?: boolean;
 }
@@ -99,7 +95,6 @@ export class TreeVirtualizer<
 	selectedId: string | number;
 	visibleItems: VirtualTreeItem<TData>[];
 	expandedNodes: Set<number | string>;
-	private unsubs: Array<void | (() => void)> = [];
 	options!: Required<VirtualizerOptions<TScrollElement, TItemElement, TData>>;
 	scrollElement: TScrollElement | null = null;
 	targetWindow: (Window & typeof globalThis) | null = null;
@@ -120,11 +115,7 @@ export class TreeVirtualizer<
 
 		this.options = {
 			debug: false,
-			overscan: 1,
-			scrollPaddingStart: 0,
-			horizontal: false,
 			onChange: () => {},
-			initialRect: { width: 0, height: 0 },
 			indexAttribute: 'data-index',
 			enabled: true,
 			...opts
@@ -136,8 +127,6 @@ export class TreeVirtualizer<
 	};
 
 	private cleanup = () => {
-		this.unsubs.filter(Boolean).forEach((d) => d!());
-		this.unsubs = [];
 		this.scrollElement = null;
 		this.targetWindow = null;
 	};
@@ -165,7 +154,7 @@ export class TreeVirtualizer<
 
 	private getIndexes = memo(
 		() => [this.visibleItems],
-		(visibleItems: { visibleItems: VirtualTreeItem<TData>[] }) => {
+		(visibleItems: any) => {
 			return visibleItems;
 		},
 		{
@@ -187,7 +176,7 @@ export class TreeVirtualizer<
 	};
 
 	getVirtualTreeItems = memo(
-		() => [this.getIndexes()],
+		() => [this.visibleItems],
 		(indexes: VirtualTreeItem<TData>[]) => {
 			return indexes;
 		},
@@ -206,16 +195,17 @@ export class TreeVirtualizer<
 		this.notify(true);
 	}
 
+	/**
+	 * Retrieves the currently selected ID.
+	 *
+	 * @returns {string | number} The ID of the selected item.
+	 */
 	getSelectedId(): string | number {
 		return this.selectedId;
 	}
 
-	setExpandedNodes(expandedNodes: Set<number | string>): void {
-		this.expandedNodes = expandedNodes;
-		this.notify(true);
-	}
-	// Updates the visible nodes based on the expanded nodes
-	updateVisibleNodes(): void {
+	// Set the intial visible nodes from the constructor
+	private updateVisibleNodes(): void {
 		let nodesThatShouldBeVisible = this.options.data.filter((node: VirtualTreeItem<TData>) => {
 			if (node.parentId === null) {
 				return true;
@@ -224,6 +214,12 @@ export class TreeVirtualizer<
 		});
 		this.visibleItems = nodesThatShouldBeVisible;
 	}
+	/**
+	 * Adds or removes the node from the expandedNodes set
+	 * @param nodeId id of the node to toggle
+	 * @param index current index of the node
+	 * @returns
+	 */
 	toggleNode(nodeId: number | string, index: number): void {
 		this.setSelectedId(nodeId);
 		let node: VirtualTreeItem<TData> = this.options.data.find(
@@ -255,8 +251,12 @@ export class TreeVirtualizer<
 		} else {
 			this.expandedNodes.add(node.id);
 			if (node.children && node.children.length > 0) {
-				const newVisibleItems = [...this.visibleItems];
-				newVisibleItems.splice(index + 1, 0, ...node.children);
+				let newVisibleItems = [...this.visibleItems];
+				newVisibleItems = [
+					...this.visibleItems.slice(0, index + 1),
+					...node.children,
+					...this.visibleItems.slice(index + 1)
+				];
 				this.setVisibleNodes(newVisibleItems);
 			} else {
 				this.setVisibleNodes([...this.visibleItems]);
@@ -264,7 +264,7 @@ export class TreeVirtualizer<
 		}
 	}
 
-	setVisibleNodes(visibleNodes: VirtualTreeItem<TData>[]): void {
+	private setVisibleNodes(visibleNodes: VirtualTreeItem<TData>[]): void {
 		this.visibleItems = visibleNodes;
 		this.notify(true);
 	}
