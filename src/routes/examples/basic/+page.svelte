@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { VirtualTreeItem } from '$lib/core';
+	import type { VirtualTreeItem } from '$lib';
 	import { createTreeVirtualizer } from '$lib';
 	import { Separator } from '$site/components/ui/separator/index.js';
 	import Plus from 'lucide-svelte/icons/plus';

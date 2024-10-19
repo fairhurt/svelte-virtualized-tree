@@ -1,6 +1,6 @@
-# Svelte Virtualized Tree
+# Svelte Virtualized Tree (UNDER ACTIVE DEVELOPMENT)
 
-Simple component for displaying large datasets in a tree structure.
+Simple component for displaying large datasets in a tree structure. Development is underway and there will be bugs!
 
 ## Installation
 
