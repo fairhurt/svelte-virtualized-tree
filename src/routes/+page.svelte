@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Button } from '$site/components/ui/button';
+	import { resolve } from '$app/paths';
+	import { Button } from '#site/components/ui/button/index.js';
 </script>
 
 <div class="flex items-center">
@@ -11,6 +12,6 @@
 			Virtualized Tree Structure leveraging Tanstack Virtual
 		</h3>
 		<p class="text-sm text-muted-foreground">Supports filtering, selecting, and scroll to row</p>
-		<Button href="/examples/basic" class="mt-4">Demo</Button>
+		<Button href={resolve('/examples/basic')} class="mt-4">Demo</Button>
 	</div>
 </div>

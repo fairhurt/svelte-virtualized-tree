@@ -20,3 +20,7 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 /dist
+
+# Playwright
+test-results
+playwright-report
