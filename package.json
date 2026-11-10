@@ -20,6 +20,8 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.39.5",
+		"@fontsource-variable/inter": "^5.3.0",
+		"@fontsource-variable/jetbrains-mono": "^5.3.0",
 		"@lucide/svelte": "^1.70.0",
 		"@playwright/test": "^1.65.0",
 		"@sveltejs/adapter-vercel": "^7.0.2",
@@ -40,6 +42,7 @@
 		"prettier-plugin-svelte": "^4.1.1",
 		"prettier-plugin-tailwindcss": "^0.8.1",
 		"publint": "^0.3.25",
+		"shiki": "^4.6.0",
 		"svelte": "^5.57.3",
 		"svelte-check": "^4.7.8",
 		"tailwind-merge": "^2.6.1",

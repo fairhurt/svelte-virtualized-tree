@@ -72,6 +72,14 @@ describe('TreeVirtualizer', () => {
 		expect([1, 2, 4, 5, 3, 6].map((id) => tree.getLevel(id))).toEqual([0, 1, 2, 3, 1, 0]);
 	});
 
+	it('reveals a nested node with expandTo', () => {
+		const tree = createTreeVirtualizer({ data: nested() });
+		tree.expandTo(5);
+		expect(ids(tree.visibleItems)).toEqual([1, 2, 4, 5, 3, 6]);
+		expect(tree.getParent(5)).toBe(4);
+		expect(tree.getParent(1)).toBeNull();
+	});
+
 	it('supports flat data linked by parentId', () => {
 		const flat = [
 			node(1, undefined, { parentId: null }),

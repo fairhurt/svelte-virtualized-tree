@@ -85,6 +85,8 @@ after the selection or expanded state changes).
 | `hasChildren(id)` / `getChildren(id)` | A node's children.                                             |
 | `getLevel(id)`                        | Depth of a node, starting at 0 for roots.                      |
 | `getLabel(node)`                      | The node's `accessorKey` field as a string.                    |
+| `expandTo(id)`                        | Expand a node's ancestors so it becomes visible.               |
+| `getParent(id)`                       | The parent's id, or `null` for roots.                          |
 | `getNode(id)`                         | Look up a node by id.                                          |
 | `setOptions({ data })`                | Replace the data; expanded and selected ids that remain stay.  |
 

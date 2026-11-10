@@ -1,4 +1,4 @@
-import { SvelteSet } from 'svelte/reactivity';
+import { untrack } from 'svelte';
 
 export type TreeItemId = string | number;
 
@@ -30,6 +30,7 @@ interface TreeIndex<TData> {
 	roots: VirtualTreeItem<TData>[];
 	children: Map<TreeItemId, VirtualTreeItem<TData>[]>;
 	levels: Map<TreeItemId, number>;
+	parents: Map<TreeItemId, TreeItemId>;
 }
 
 const NO_CHILDREN: never[] = [];
@@ -64,6 +65,7 @@ function buildIndex<TData>(data: VirtualTreeItem<TData>[]): TreeIndex<TData> {
 	// Resolve each reachable node's children and depth in one walk from the roots.
 	const children = new Map<TreeItemId, VirtualTreeItem<TData>[]>();
 	const levels = new Map<TreeItemId, number>();
+	const parents = new Map<TreeItemId, TreeItemId>();
 	const stack: [VirtualTreeItem<TData>, number][] = roots.map((root) => [root, 0]);
 	while (stack.length) {
 		const [node, level] = stack.pop()!;
@@ -71,10 +73,13 @@ function buildIndex<TData>(data: VirtualTreeItem<TData>[]): TreeIndex<TData> {
 		levels.set(node.id, level);
 		const kids = node.children ?? flatChildren.get(node.id) ?? NO_CHILDREN;
 		children.set(node.id, kids);
-		for (const child of kids) stack.push([child, level + 1]);
+		for (const child of kids) {
+			parents.set(child.id, node.id);
+			stack.push([child, level + 1]);
+		}
 	}
 
-	return { nodes, roots, children, levels };
+	return { nodes, roots, children, levels, parents };
 }
 /* eslint-enable svelte/prefer-svelte-reactivity */
 
@@ -82,11 +87,16 @@ export class TreeVirtualizer<TData> {
 	#options: TreeVirtualizerOptions<TData>;
 	#index: TreeIndex<TData> = $derived.by(() => buildIndex(this.#options.data));
 	#selectedId: TreeItemId | null = $state(null);
-	#expanded = new SvelteSet<TreeItemId>();
+	// A plain set plus one change counter. A reactive set would track every id it is asked
+	// about, which gets slow when a derived walks a hundred thousand nodes.
+	// eslint-disable-next-line svelte/prefer-svelte-reactivity
+	#expanded = new Set<TreeItemId>();
+	#expandedVersion = $state(0);
 
 	/** The nodes currently shown, in display order. Use this as the virtual list's rows. */
 	readonly visibleItems: VirtualTreeItem<TData>[] = $derived.by(() => {
 		const items: VirtualTreeItem<TData>[] = [];
+		void this.#expandedVersion;
 		// Iterative depth-first walk, so very deep trees can't overflow the stack.
 		const stack = [...this.#index.roots].reverse();
 		while (stack.length) {
@@ -116,6 +126,7 @@ export class TreeVirtualizer<TData> {
 
 	/** Ids of the expanded nodes. Use `expand`, `collapse` or `toggle` to change them. */
 	get expandedIds(): ReadonlySet<TreeItemId> {
+		void this.#expandedVersion;
 		return this.#expanded;
 	}
 
@@ -146,6 +157,11 @@ export class TreeVirtualizer<TData> {
 		return this.getChildren(id).length > 0;
 	}
 
+	/** The id of a node's parent, or `null` for roots and unknown ids. */
+	getParent(id: TreeItemId): TreeItemId | null {
+		return this.#index.parents.get(id) ?? null;
+	}
+
 	/** Depth of a node: 0 for roots, 1 for their children, and so on. */
 	getLevel(id: TreeItemId): number {
 		return this.#index.levels.get(id) ?? 0;
@@ -158,6 +174,7 @@ export class TreeVirtualizer<TData> {
 	}
 
 	isExpanded(id: TreeItemId): boolean {
+		void this.#expandedVersion;
 		return this.#expanded.has(id);
 	}
 
@@ -169,7 +186,7 @@ export class TreeVirtualizer<TData> {
 	select(id: TreeItemId | null): void {
 		if (this.#selectedId === id) return;
 		this.#selectedId = id;
-		this.#notify();
+		this.#notify(false);
 	}
 
 	expand(id: TreeItemId): void {
@@ -185,6 +202,20 @@ export class TreeVirtualizer<TData> {
 		this.#notify();
 	}
 
+	/** Expand every ancestor of a node, so the node itself becomes visible. */
+	expandTo(id: TreeItemId): void {
+		let changed = false;
+		let parent = this.getParent(id);
+		while (parent !== null) {
+			if (!this.#expanded.has(parent)) {
+				this.#expanded.add(parent);
+				changed = true;
+			}
+			parent = this.getParent(parent);
+		}
+		if (changed) this.#notify();
+	}
+
 	/** Expand a node if it's collapsed, or collapse it if it's expanded. */
 	toggle(id: TreeItemId): void {
 		if (this.#expanded.has(id)) this.collapse(id);
@@ -194,9 +225,10 @@ export class TreeVirtualizer<TData> {
 	/** Select a node and toggle it, which is what clicking a row usually does. */
 	toggleNode(id: TreeItemId): void {
 		this.#selectedId = id;
+		const isParent = this.hasChildren(id);
 		if (this.#expanded.has(id)) this.#collapseFrom([id]);
-		else if (this.hasChildren(id)) this.#expanded.add(id);
-		this.#notify();
+		else if (isParent) this.#expanded.add(id);
+		this.#notify(isParent);
 	}
 
 	expandAll(): void {
@@ -225,7 +257,9 @@ export class TreeVirtualizer<TData> {
 		}
 	}
 
-	#notify(): void {
+	/** Call `onChange`, first telling readers when the expanded set changed. */
+	#notify(expandedChanged = true): void {
+		if (expandedChanged) this.#expandedVersion = untrack(() => this.#expandedVersion) + 1;
 		this.#options.onChange?.(this);
 	}
 }
