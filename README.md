@@ -1,4 +1,4 @@
-# Svelte Virtualized Tree (UNDER ACTIVE DEVELOPMENT)
+# Svelte Virtualized Tree
 
 Headless tree state for displaying large datasets in a tree structure with Svelte 5. Pair it with a
 virtual list such as [`@tanstack/svelte-virtual`](https://tanstack.com/virtual) to render only the
