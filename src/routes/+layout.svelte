@@ -1,43 +1,50 @@
 <script lang="ts">
-	import House from 'lucide-svelte/icons/house';
-	import Menu from 'lucide-svelte/icons/menu';
-	import { Button } from '$site/components/ui/button/index.js';
-	import * as Sheet from '$site/components/ui/sheet/index.js';
-	import { Separator } from '$site/components/ui/separator/index.js';
+	import { afterNavigate } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import House from '@lucide/svelte/icons/house';
+	import Menu from '@lucide/svelte/icons/menu';
+	import { Button } from '#site/components/ui/button/index.js';
+	import * as Sheet from '#site/components/ui/sheet/index.js';
+	import { Separator } from '#site/components/ui/separator/index.js';
 	import '../app.css';
+
+	let { children } = $props();
+
+	let menuOpen = $state(false);
+
+	// Close the mobile menu once one of its links has been followed.
+	afterNavigate(() => {
+		menuOpen = false;
+	});
 </script>
 
 <div class="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
 	<div class="hidden border-r bg-muted/40 md:block">
 		<div class="flex h-full max-h-screen flex-col gap-2">
 			<div class="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-				<a href="/" class="flex items-center gap-2 font-semibold">
+				<a href={resolve('/')} class="flex items-center gap-2 font-semibold">
 					<span class="">Svelte Virtualized Tree</span>
 				</a>
 			</div>
 			<div class="flex-1">
 				<nav class="grid items-start px-2 text-sm font-medium lg:px-4">
 					<a
-						href="/installation"
+						href={resolve('/installation')}
 						class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
 					>
 						Installation
 					</a>
 
 					<a
-						href="/usage"
+						href={resolve('/usage')}
 						class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
 					>
 						Usage
 					</a>
-					<p
-						class="transition-ally flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground"
-					>
-						Examples
-					</p>
+					<p class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground">Examples</p>
 					<Separator />
 					<a
-						href="/examples/basic"
+						href={resolve('/examples/basic')}
 						class="ml-6 flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
 					>
 						Basic
@@ -56,38 +63,41 @@
 			</div>
 		</div>
 	</div>
-	<div class="flex flex-col">
+	<div class="flex min-w-0 flex-col">
 		<header class="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-			<Sheet.Root>
-				<Sheet.Trigger asChild let:builder>
-					<Button variant="outline" size="icon" class="shrink-0 md:hidden" builders={[builder]}>
-						<Menu class="h-5 w-5" />
-						<span class="sr-only">Toggle navigation menu</span>
-					</Button>
+			<Sheet.Root bind:open={menuOpen}>
+				<Sheet.Trigger>
+					{#snippet child({ props })}
+						<Button {...props} variant="outline" size="icon" class="shrink-0 md:hidden">
+							<Menu class="h-5 w-5" />
+							<span class="sr-only">Toggle navigation menu</span>
+						</Button>
+					{/snippet}
 				</Sheet.Trigger>
 				<Sheet.Content side="left" class="flex flex-col">
+					<Sheet.Title class="sr-only">Navigation</Sheet.Title>
 					<nav class="grid gap-2 text-lg font-medium">
 						<a
-							href="/"
+							href={resolve('/')}
 							class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
 						>
 							<House class="h-5 w-5" />
 							Home
 						</a>
 						<a
-							href="/installation"
-							class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-foreground hover:text-foreground"
+							href={resolve('/installation')}
+							class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
 						>
 							Installation
 						</a>
 						<a
-							href="/usage"
+							href={resolve('/usage')}
 							class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
 						>
 							Usage
 						</a>
 						<a
-							href="/examples"
+							href={resolve('/examples/basic')}
 							class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
 						>
 							Examples
@@ -107,7 +117,7 @@
 			</Sheet.Root>
 		</header>
 		<main class="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-			<slot />
+			{@render children()}
 		</main>
 	</div>
 </div>
